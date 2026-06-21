@@ -1,3 +1,3 @@
 # FM Public Project #1
-An automation utility that renames photo and PDF files based on their content and transcribes them into Markdown. Built to streamline tedious admin work, data entry, and translation prep.
-Lite Version Limits: Supports a limited batch of files, max 3MB per file.
+A lightweight utility designed to automate menial administrative tasks like data entry and translation preparation. This tool automatically renames photo and PDF files based on their content while simultaneously transcribing readable text into Markdown files.
+Note: This is a lite version supporting a limited number of files up to 3MB each.
