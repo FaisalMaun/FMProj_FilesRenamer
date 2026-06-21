@@ -1,2 +1,3 @@
-# FMProjects
-A collection of my side projects. Free to use and build upon—just credit me in your work and let me know how it helped you succeed!
+# FM Public Project #1
+An automation utility that renames photo and PDF files based on their content and transcribes them into Markdown. Built to streamline tedious admin work, data entry, and translation prep.
+Lite Version Limits: Supports a limited batch of files, max 3MB per file.
