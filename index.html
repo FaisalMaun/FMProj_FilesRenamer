@@ -1,0 +1,900 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>File Processor - Rename & Convert to Markdown</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 16px;
+            padding: 40px;
+            margin: 20px 0;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+            display: none;
+        }
+
+        .card.active {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        h1 { font-size: 2.2em; margin-bottom: 10px; color: #667eea; }
+        h2 { font-size: 1.5em; margin-bottom: 20px; color: #444; }
+        p { line-height: 1.7; margin-bottom: 15px; color: #555; }
+
+        .feature-list {
+            list-style: none;
+            margin: 20px 0;
+        }
+
+        .feature-list li {
+            padding: 10px 0;
+            padding-left: 30px;
+            position: relative;
+        }
+
+        .feature-list li::before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: #667eea;
+            font-weight: bold;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 14px 32px;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin-top: 20px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-secondary {
+            background: #f0f0f0;
+            color: #333;
+            margin-left: 10px;
+        }
+
+        .btn-secondary:hover {
+            background: #e0e0e0;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .terms-box {
+            background: #f8f9fa;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 20px;
+            max-height: 400px;
+            overflow-y: auto;
+            margin: 20px 0;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .terms-box h3 {
+            margin: 15px 0 8px 0;
+            color: #444;
+            font-size: 15px;
+        }
+
+        .terms-box h3:first-child { margin-top: 0; }
+
+        .terms-box p {
+            font-size: 13px;
+            margin-bottom: 8px;
+            color: #555;
+        }
+
+        .checkbox-container {
+            display: flex;
+            align-items: center;
+            margin: 20px 0;
+            cursor: pointer;
+        }
+
+        .checkbox-container input {
+            width: 20px;
+            height: 20px;
+            margin-right: 12px;
+            cursor: pointer;
+        }
+
+        .checkbox-container label {
+            cursor: pointer;
+            font-size: 15px;
+        }
+
+        .upload-section { margin: 20px 0; }
+
+        .upload-section h3 {
+            margin-bottom: 10px;
+            color: #444;
+            font-size: 1.1em;
+        }
+
+        .upload-section .limits {
+            font-size: 13px;
+            color: #888;
+            margin-bottom: 10px;
+        }
+
+        .drop-zone {
+            border: 2px dashed #667eea;
+            border-radius: 12px;
+            padding: 40px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: #fafbff;
+        }
+
+        .drop-zone:hover {
+            background: #f0f4ff;
+            border-color: #764ba2;
+        }
+
+        .drop-zone.drag-over {
+            background: #e8eeff;
+            border-color: #667eea;
+            transform: scale(1.02);
+        }
+
+        .drop-zone p {
+            color: #667eea;
+            font-size: 16px;
+            margin-bottom: 10px;
+        }
+
+        .drop-zone .sub-text {
+            font-size: 13px;
+            color: #888;
+        }
+
+        .file-list { margin-top: 15px; }
+
+        .file-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            border-left: 4px solid #667eea;
+        }
+
+        .file-item .file-info { flex: 1; }
+
+        .file-item .file-name {
+            font-weight: 500;
+            color: #333;
+            font-size: 14px;
+        }
+
+        .file-item .file-meta {
+            font-size: 12px;
+            color: #888;
+            margin-top: 2px;
+        }
+
+        .file-item .remove-btn {
+            background: #ff6b6b;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: background 0.2s;
+        }
+
+        .file-item .remove-btn:hover { background: #ff5252; }
+
+        .file-count {
+            text-align: center;
+            margin: 15px 0;
+            font-size: 14px;
+            color: #666;
+        }
+
+        .file-count span {
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .progress-container { margin: 30px 0; }
+
+        .progress-bar {
+            width: 100%;
+            height: 30px;
+            background: #e0e0e0;
+            border-radius: 15px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            border-radius: 15px;
+            transition: width 0.5s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        .progress-status {
+            text-align: center;
+            margin-top: 15px;
+            font-size: 15px;
+            color: #555;
+        }
+
+        .warning-box {
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 20px 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .warning-box .icon { font-size: 24px; }
+
+        .warning-box p {
+            margin: 0;
+            font-size: 14px;
+            color: #856404;
+        }
+
+        .download-section {
+            text-align: center;
+            padding: 30px 0;
+        }
+
+        .download-btn {
+            display: inline-block;
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            color: white;
+            text-decoration: none;
+            padding: 16px 40px;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: 500;
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin-bottom: 20px;
+        }
+
+        .download-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(17, 153, 142, 0.4);
+        }
+
+        .success-message {
+            color: #11998e;
+            font-size: 1.2em;
+            margin-bottom: 15px;
+        }
+
+        .error-message {
+            color: #ff6b6b;
+            font-size: 1.1em;
+            margin-bottom: 15px;
+        }
+
+        .result-list {
+            text-align: left;
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .result-list h4 {
+            margin-bottom: 10px;
+            color: #444;
+        }
+
+        .result-list ul { list-style: none; }
+
+        .result-list li {
+            padding: 5px 0;
+            font-size: 14px;
+            color: #555;
+        }
+
+        .result-list li .original {
+            text-decoration: line-through;
+            color: #888;
+        }
+
+        .result-list li .arrow {
+            color: #667eea;
+            margin: 0 8px;
+        }
+
+        .result-list li .renamed {
+            color: #11998e;
+            font-weight: 500;
+        }
+
+        .hidden { display: none !important; }
+
+        .spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+            margin-left: 10px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .section-divider {
+            height: 1px;
+            background: #e0e0e0;
+            margin: 30px 0;
+        }
+
+        @media (max-width: 600px) {
+            .card { padding: 25px; margin: 10px 0; }
+            h1 { font-size: 1.7em; }
+            .drop-zone { padding: 25px 15px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- SECTION 1: Introduction -->
+        <div class="card active" id="section-intro">
+            <h1>📁 File Processor</h1>
+            <h2>Smart Rename & Markdown Converter</h2>
+            <p>Welcome! This tool helps you organize your files with intelligent naming and converts their content to structured Markdown format.</p>
+
+            <ul class="feature-list">
+                <li>Upload up to <strong>10 images</strong> (JPG, PNG, GIF, WebP) — max 3MB each</li>
+                <li>Upload up to <strong>2 PDF documents</strong> — max 3MB each</li>
+                <li>AI-powered description generation for smart file naming</li>
+                <li>Automatic Markdown conversion preserving structure and formatting</li>
+                <li>All files packaged in a single ZIP with new names</li>
+                <li><strong>No files stored</strong> — everything processed in memory</li>
+            </ul>
+
+            <p style="margin-top: 25px; font-size: 14px; color: #888;">
+                <strong>Privacy Note:</strong> Session metadata (IP, browser, file names, timestamps) is logged for operational purposes. 
+                File contents are never stored. See Terms of Use for details.
+            </p>
+
+            <button class="btn" onclick="nextSection('section-terms')">Next →</button>
+        </div>
+
+        <!-- SECTION 2: Terms of Use -->
+        <div class="card" id="section-terms">
+            <h1>📋 Terms of Use & Declaration</h1>
+
+            <div class="terms-box">
+                <h3>1. Definitions</h3>
+                <p>"Service" means this file processing tool. "Operator" means the individual or entity running this service. "User" means any person accessing or using the Service. "AI-generated descriptions" means the text outputs produced by artificial intelligence models in response to uploaded files.</p>
+
+                <h3>2. Service Description</h3>
+                <p>This tool processes image and PDF files to generate descriptive file names and Markdown conversions. All file processing occurs in volatile memory. <strong>No file contents are ever stored, logged, or retained.</strong></p>
+
+                <h3>3. Data We Collect</h3>
+                <p>For operational and security purposes, we collect: your IP address, browser type, device type, country of origin (derived from IP), file names, file sizes, file extensions, upload timestamps, session duration, processing outcomes, AI-generated descriptions, and any processing errors.</p>
+
+                <h3>4. Data Retention</h3>
+                <p>Session metadata is retained for <strong>36 hours</strong> to allow for operational review and daily log aggregation. After 36 hours, all session data is <strong>permanently deleted</strong> from our systems. Daily email digests containing aggregated statistics are sent to the Operator and are not shared with third parties. The Operator retains all rights to log data and session records during the 36-hour retention period.</p>
+
+                <h3>5. Ownership</h3>
+                <p><strong>AI-generated descriptions</strong> are the property of the User and are provided as part of the processed output. The Operator makes no claim to AI-generated descriptions once delivered to the User. <strong>Log data and session records</strong> are the property of the Operator. By using this Service, the User acknowledges that the Operator maintains logs as a prerogative of service operation and the User does not acquire any rights to such logs.</p>
+
+                <h3>6. File Handling</h3>
+                <p>• Maximum file size: 3MB per file<br>
+                • Maximum files: 10 images + 2 PDFs per session<br>
+                • Unsupported file types are rejected<br>
+                • Files are processed in memory only and never written to disk</p>
+
+                <h3>7. Limitations</h3>
+                <p>• AI-generated descriptions are automated and may not always be accurate<br>
+                • Complex PDF layouts may not convert perfectly to Markdown<br>
+                • Service availability is not guaranteed<br>
+                • <strong>Use this Service at your own risk</strong></p>
+
+                <h3>8. User Responsibilities</h3>
+                <p>• You must be at least <strong>18 years of age</strong> (the age of consent in Singapore) to use this Service<br>
+                • You must have legal rights to process the uploaded files<br>
+                • Do not upload content that violates any applicable laws<br>
+                • Do not attempt to abuse, overload, or attack the Service<br>
+                • You are responsible for maintaining backups of your original files</p>
+
+                <h3>9. Disclaimer & Liability</h3>
+                <p>This Service is provided <strong>"as-is"</strong> without warranties of any kind, express or implied. The Operator is <strong>not legally responsible</strong> for any liabilities, damages, losses, or claims that may arise from your use of this Service, including but not limited to: data loss, processing errors, inaccurate AI descriptions, service interruptions, or unauthorized access. <strong>You use this Service entirely at your own risk.</strong> The Operator's liability is excluded to the fullest extent permitted by law.</p>
+
+                <h3>10. Data Access, Correction & Accuracy</h3>
+                <p>The data collected (IP address, browser type, device type, country, file metadata) is retained for <strong>36 hours</strong> solely for operational audit and security investigation. This data is not linked to any real-world identity and cannot be used to identify you personally. As such, access and correction requests are not applicable. For formal investigations, contact raglansocial@gmail.com within 36 hours of your session.</p>
+
+                <h3>11. Data Breach</h3>
+                <p>Given that all session data is permanently deleted after 36 hours, the window for data exposure is minimal. In the unlikely event of a breach within this window, we will assess harm under PDPA guidelines. However, due to the transient nature of data collection and lack of linkage to real-world identity, significant harm is unlikely. No notification will be issued for data that has already been deleted.</p>
+
+                <h3>12. Withdrawal of Consent</h3>
+                <p>Given that all data is automatically deleted after 36 hours, withdrawal of consent is effectively achieved by the passage of this period. If you require immediate deletion within the 36-hour window, contact raglansocial@gmail.com with your session details.</p>
+
+                <h3>13. Data Protection Contact</h3>
+                <p>This is a personal project operated by an individual, not an organization. While a formal Data Protection Officer is not appointed under PDPA exemptions for non-commercial individual projects, data-related queries may be directed to raglansocial@gmail.com.</p>
+
+                <h3>14. Law Enforcement & Legal Compliance</h3>
+                <p>The Operator will cooperate with valid legal requests in accordance with <strong>GitHub Terms of Service</strong> and the <strong>laws of Singapore</strong>. Where required by law or court order, the Operator may disclose session metadata within the 36-hour retention window.</p>
+
+                <h3>15. Governing Law</h3>
+                <p>These Terms are governed by and construed in accordance with the laws of <strong>Singapore</strong>. Any disputes arising from these Terms or the use of this Service shall be subject to the exclusive jurisdiction of the courts of Singapore.</p>
+
+                <h3>16. Changes to Terms</h3>
+                <p>The Operator reserves the right to update these Terms at any time. Continued use of the Service after changes constitutes acceptance of the revised Terms.</p>
+
+                <h3>17. Contact</h3>
+                <p>For questions about these Terms or your data: <strong>raglansocial@gmail.com</strong></p>
+            </div>
+
+            <div class="checkbox-container">
+                <input type="checkbox" id="terms-check" onchange="toggleTermsButton()">
+                <label for="terms-check">I have read and understood the Terms of Use and Declaration above.</label>
+            </div>
+
+            <button class="btn" id="terms-btn" disabled onclick="nextSection('section-upload')">
+                I agree to the terms and wish to continue
+            </button>
+            <button class="btn btn-secondary" onclick="prevSection('section-intro')">← Back</button>
+        </div>
+
+        <!-- SECTION 3: File Upload -->
+        <div class="card" id="section-upload">
+            <h1>📤 Upload Your Files</h1>
+            <p>Select or drag-and-drop your files into the appropriate sections below.</p>
+
+            <div class="upload-section">
+                <h3>🖼️ Images</h3>
+                <p class="limits">Max 10 files • Max 3MB each • JPG, PNG, GIF, WebP</p>
+
+                <div class="drop-zone" id="image-drop-zone" onclick="document.getElementById('image-input').click()">
+                    <p>📷 Click or drag images here</p>
+                    <p class="sub-text">Supported: JPG, PNG, GIF, WebP</p>
+                </div>
+                <input type="file" id="image-input" multiple accept="image/jpeg,image/png,image/gif,image/webp" style="display: none;" onchange="handleFiles(this, 'images')">
+
+                <div class="file-list" id="image-list"></div>
+            </div>
+
+            <div class="section-divider"></div>
+
+            <div class="upload-section">
+                <h3>📄 PDF Documents</h3>
+                <p class="limits">Max 2 files • Max 3MB each • PDF only</p>
+
+                <div class="drop-zone" id="pdf-drop-zone" onclick="document.getElementById('pdf-input').click()">
+                    <p>📑 Click or drag PDFs here</p>
+                    <p class="sub-text">Supported: PDF only</p>
+                </div>
+                <input type="file" id="pdf-input" multiple accept="application/pdf" style="display: none;" onchange="handleFiles(this, 'pdfs')">
+
+                <div class="file-list" id="pdf-list"></div>
+            </div>
+
+            <div class="file-count">
+                Total files: <span id="total-count">0</span> 
+                (Images: <span id="image-count">0</span> | PDFs: <span id="pdf-count">0</span>)
+                <br>
+                Total size: <span id="total-size">0 MB</span>
+            </div>
+
+            <button class="btn" id="process-btn" disabled onclick="startProcessing()">
+                Process Files
+            </button>
+            <button class="btn btn-secondary" onclick="prevSection('section-terms')">← Back</button>
+        </div>
+
+        <!-- SECTION 4: Processing -->
+        <div class="card" id="section-processing">
+            <h1>⚙️ Processing Files</h1>
+
+            <div class="warning-box">
+                <span class="icon">⚠️</span>
+                <p><strong>Do not go back or refresh this page.</strong> Progress will be lost if you do. Please wait for processing to complete.</p>
+            </div>
+
+            <div class="progress-container">
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progress-fill" style="width: 0%">0%</div>
+                </div>
+                <div class="progress-status" id="progress-status">
+                    Initializing... <span class="spinner"></span>
+                </div>
+            </div>
+
+            <p style="text-align: center; color: #888; font-size: 14px; margin-top: 20px;">
+                This may take 30–90 seconds depending on file count and complexity.
+            </p>
+        </div>
+
+        <!-- SECTION 5: Results -->
+        <div class="card" id="section-results">
+            <h1>✅ Processing Complete</h1>
+
+            <div id="success-result" class="hidden">
+                <p class="success-message">🎉 All files processed successfully!</p>
+
+                <div class="result-list" id="result-files"></div>
+
+                <div class="download-section">
+                    <a href="#" class="download-btn" id="download-link" download="processed-files.zip">
+                        ⬇️ Download ZIP File
+                    </a>
+                    <p style="font-size: 13px; color: #888;">
+                        Contains renamed files + Markdown conversions
+                    </p>
+                </div>
+            </div>
+
+            <div id="partial-result" class="hidden">
+                <p class="error-message">⚠️ Processing completed but some files were not fully successful.</p>
+                <p style="text-align: center; color: #666; margin-bottom: 20px;">
+                    AI description failed for some files. Generic names were used instead.<br>
+                    Consider uploading clearer or better-quality files for optimal results.
+                </p>
+
+                <div class="result-list" id="partial-files"></div>
+
+                <div class="download-section">
+                    <a href="#" class="download-btn" id="partial-download-link" download="processed-files.zip">
+                        ⬇️ Download ZIP File (Partial)
+                    </a>
+                </div>
+            </div>
+
+            <div id="failed-result" class="hidden">
+                <p class="error-message">❌ Processing failed.</p>
+                <p style="text-align: center; color: #666;">
+                    An error occurred during processing. Please try again with different files.<br>
+                    If the problem persists, the service may be temporarily unavailable.
+                </p>
+            </div>
+
+            <button class="btn" onclick="endSession()">
+                I have downloaded the files — End Session & Clear Cache
+            </button>
+        </div>
+
+        <!-- SECTION 6: Session End -->
+        <div class="card" id="section-end">
+            <h1>👋 Session Ended</h1>
+            <p style="text-align: center; font-size: 1.1em;">
+                Thank you for using File Processor.<br><br>
+                Your session has been ended and all temporary data has been cleared.<br>
+                No files were stored on our servers.
+            </p>
+            <p style="text-align: center; margin-top: 30px;">
+                <button class="btn" onclick="location.reload()">Start New Session</button>
+            </p>
+        </div>
+    </div>
+
+    <script>
+        const WORKER_URL = 'https://frosty-rain-4de3.raglansocial.workers.dev';
+        const MAX_IMAGES = 10;
+        const MAX_PDFS = 2;
+        const MAX_FILE_SIZE = 3 * 1024 * 1024;
+
+        let sessionId = null;
+        let images = [];
+        let pdfs = [];
+        let progressInterval = null;
+
+        function nextSection(id) {
+            document.querySelectorAll('.card').forEach(c => c.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+            window.scrollTo(0, 0);
+        }
+
+        function prevSection(id) {
+            nextSection(id);
+        }
+
+        function toggleTermsButton() {
+            const checked = document.getElementById('terms-check').checked;
+            document.getElementById('terms-btn').disabled = !checked;
+        }
+
+        function handleFiles(input, type) {
+            const files = Array.from(input.files);
+            const currentList = type === 'images' ? images : pdfs;
+            const maxCount = type === 'images' ? MAX_IMAGES : MAX_PDFS;
+            const allowedTypes = type === 'images' 
+                ? ['image/jpeg', 'image/png', 'image/gif', 'image/webp']
+                : ['application/pdf'];
+
+            for (const file of files) {
+                if (currentList.length >= maxCount) {
+                    alert(`Maximum ${maxCount} ${type} allowed.`);
+                    break;
+                }
+
+                if (!allowedTypes.includes(file.type)) {
+                    alert(`Invalid file type: ${file.name}. Only ${type === 'images' ? 'JPG, PNG, GIF, WebP' : 'PDF'} allowed.`);
+                    continue;
+                }
+
+                if (file.size > MAX_FILE_SIZE) {
+                    alert(`File too large: ${file.name}. Maximum 3MB allowed.`);
+                    continue;
+                }
+
+                currentList.push(file);
+            }
+
+            updateFileList(type);
+            updateTotals();
+            input.value = '';
+        }
+
+        function updateFileList(type) {
+            const list = document.getElementById(type === 'images' ? 'image-list' : 'pdf-list');
+            const files = type === 'images' ? images : pdfs;
+
+            list.innerHTML = files.map((file, index) => `
+                <div class="file-item">
+                    <div class="file-info">
+                        <div class="file-name">${file.name}</div>
+                        <div class="file-meta">${formatSize(file.size)} • ${file.type}</div>
+                    </div>
+                    <button class="remove-btn" onclick="removeFile('${type}', ${index})">Remove</button>
+                </div>
+            `).join('');
+        }
+
+        function removeFile(type, index) {
+            if (type === 'images') images.splice(index, 1);
+            else pdfs.splice(index, 1);
+            updateFileList(type);
+            updateTotals();
+        }
+
+        function updateTotals() {
+            const totalCount = images.length + pdfs.length;
+            const totalSize = [...images, ...pdfs].reduce((sum, f) => sum + f.size, 0);
+
+            document.getElementById('total-count').textContent = totalCount;
+            document.getElementById('image-count').textContent = images.length;
+            document.getElementById('pdf-count').textContent = pdfs.length;
+            document.getElementById('total-size').textContent = formatSize(totalSize);
+            document.getElementById('process-btn').disabled = totalCount === 0;
+        }
+
+        function formatSize(bytes) {
+            if (bytes === 0) return '0 B';
+            const k = 1024;
+            const sizes = ['B', 'KB', 'MB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        function setupDragDrop() {
+            const imageZone = document.getElementById('image-drop-zone');
+            const pdfZone = document.getElementById('pdf-drop-zone');
+
+            [imageZone, pdfZone].forEach(zone => {
+                zone.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    zone.classList.add('drag-over');
+                });
+
+                zone.addEventListener('dragleave', () => {
+                    zone.classList.remove('drag-over');
+                });
+
+                zone.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    zone.classList.remove('drag-over');
+
+                    const type = zone.id === 'image-drop-zone' ? 'images' : 'pdfs';
+                    const input = document.getElementById(type === 'images' ? 'image-input' : 'pdf-input');
+
+                    const dt = new DataTransfer();
+                    for (const file of e.dataTransfer.files) {
+                        dt.items.add(file);
+                    }
+                    input.files = dt.files;
+                    handleFiles(input, type);
+                });
+            });
+        }
+
+        setupDragDrop();
+
+        async function startProcessing() {
+            if (images.length === 0 && pdfs.length === 0) {
+                alert('Please upload at least one file.');
+                return;
+            }
+
+            nextSection('section-processing');
+
+            try {
+                const startRes = await fetch(`${WORKER_URL}/api/start`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+
+                if (!startRes.ok) {
+                    const error = await startRes.json();
+                    throw new Error(error.error || 'Failed to start session');
+                }
+
+                const startData = await startRes.json();
+                sessionId = startData.sessionId;
+
+                progressInterval = setInterval(pollProgress, 2000);
+
+                const formData = new FormData();
+                images.forEach(f => formData.append('images', f));
+                pdfs.forEach(f => formData.append('pdfs', f));
+
+                const processRes = await fetch(`${WORKER_URL}/api/process/${sessionId}`, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                clearInterval(progressInterval);
+
+                if (!processRes.ok) {
+                    const error = await processRes.json();
+                    throw new Error(error.error || 'Processing failed');
+                }
+
+                const result = await processRes.json();
+                showResults(result);
+
+            } catch (error) {
+                clearInterval(progressInterval);
+                console.error('Processing error:', error);
+                showFailed(error.message);
+            }
+        }
+
+        async function pollProgress() {
+            if (!sessionId) return;
+
+            try {
+                const res = await fetch(`${WORKER_URL}/api/progress/${sessionId}`);
+                if (!res.ok) return;
+
+                const data = await res.json();
+                const percent = data.percent_complete || 0;
+                const step = data.current_step || 'processing';
+                const file = data.current_file || '';
+
+                document.getElementById('progress-fill').style.width = percent + '%';
+                document.getElementById('progress-fill').textContent = percent + '%';
+
+                let statusText = '';
+                if (step === 'started') statusText = 'Initializing...';
+                else if (step === 'processing') statusText = `Processing: ${file}`;
+                else if (step === 'packaging') statusText = 'Creating ZIP file...';
+                else if (step === 'complete') statusText = 'Complete!';
+                else statusText = step;
+
+                document.getElementById('progress-status').innerHTML = 
+                    statusText + (percent < 100 ? ' <span class="spinner"></span>' : '');
+
+            } catch (e) {}
+        }
+
+        function showResults(result) {
+            nextSection('section-results');
+
+            const isSuccess = result.status === 'completed';
+            const isPartial = result.status === 'partial';
+
+            document.getElementById('success-result').classList.toggle('hidden', !isSuccess);
+            document.getElementById('partial-result').classList.toggle('hidden', !isPartial);
+            document.getElementById('failed-result').classList.add('hidden');
+
+            if (isSuccess || isPartial) {
+                const filesHtml = result.files.map(f => `
+                    <li>
+                        <span class="original">${f.original}</span>
+                        <span class="arrow">→</span>
+                        <span class="renamed">${f.renamed}</span>
+                    </li>
+                `).join('');
+
+                if (isSuccess) {
+                    document.getElementById('result-files').innerHTML = 
+                        '<h4>Renamed Files:</h4><ul>' + filesHtml + '</ul>';
+                    setupDownload('download-link', result.zipData);
+                } else {
+                    document.getElementById('partial-files').innerHTML = 
+                        '<h4>Renamed Files (some with generic names):</h4><ul>' + filesHtml + '</ul>';
+                    setupDownload('partial-download-link', result.zipData);
+                }
+            }
+        }
+
+        function showFailed(message) {
+            nextSection('section-results');
+            document.getElementById('success-result').classList.add('hidden');
+            document.getElementById('partial-result').classList.add('hidden');
+            document.getElementById('failed-result').classList.remove('hidden');
+        }
+
+        function setupDownload(linkId, base64Data) {
+            const link = document.getElementById(linkId);
+            link.href = 'data:application/zip;base64,' + base64Data;
+        }
+
+        async function endSession() {
+            if (sessionId) {
+                try {
+                    await fetch(`${WORKER_URL}/api/end/${sessionId}`, { method: 'POST' });
+                } catch (e) {}
+            }
+
+            images = [];
+            pdfs = [];
+            sessionId = null;
+            if (progressInterval) clearInterval(progressInterval);
+
+            document.getElementById('image-list').innerHTML = '';
+            document.getElementById('pdf-list').innerHTML = '';
+            updateTotals();
+
+            nextSection('section-end');
+        }
+    </script>
+</body>
+</html>
