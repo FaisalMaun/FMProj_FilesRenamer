@@ -37,3 +37,5 @@ I created this app to automate those repetitive tasks. Its goal is to help the o
 
 ## Current Status
 Approximately 98% of known bugs have been resolved. The application is now largely stable, but it has yet to undergo comprehensive stress testing to validate its reliability, consistency, and performance under heavier workloads.
+
+### Disclaimer: This application is provided as-is for demonstration and educational purposes. While every effort has been made to ensure accuracy, results should be independently verified before being used for operational or business decisions.
