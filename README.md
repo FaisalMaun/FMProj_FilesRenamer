@@ -30,7 +30,7 @@ I created this app to automate those repetitive tasks. Its goal is to help the o
 
 ## Technical Challenge
 - Frustration level: 8.5/10.
-- The project was split roughly 50% frontend development and 50% AI/backend integration.
+- The project was split roughly 35% frontend development and 65% AI/backend integration.
 - One of the biggest challenges was getting the AI to reliably read and interpret uploaded files.
 - Integrating and communicating with the AI agent required considerable experimentation and troubleshooting.
 - Balancing AI capability against token usage was another challenge—more capable models generally produce better results but are also more expensive and have stricter usage limits.
