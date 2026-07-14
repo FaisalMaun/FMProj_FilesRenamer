@@ -22,7 +22,7 @@ Files Renamer (FMProj_FilesRenamer)
 - Improves file organisation, making documents easier to identify and manage.
 - Designed for anonymous use, with no requirement to create an account.
 
-## Reflections (Why I created this app)
+## Reflections (Why did I create this app)
 Much of my work, both past and present, involves unglamorous but necessary administrative tasks, such as sorting through images and documents. In today's digital world, creating files is effortless—a single tap of a phone camera can generate dozens of photos. The real work begins afterwards: organising, renaming, and extracting useful information from them. A folder full of randomly named files is difficult to navigate and adds unnecessary administrative overhead.
 Many of these files also contain information that needs to be entered into ERP systems or other business applications. Before that can happen, someone has to manually read the files, extract the relevant data, and prepare it for use.
 I created this app to automate those repetitive tasks. Its goal is to help the often-unsung administrator work more efficiently, reduce repetitive manual effort, and spend more time on work that adds real value.
