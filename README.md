@@ -10,15 +10,17 @@ Files Renamer (FMProj_FilesRenamer)
 - Maximum file size of 3 MB per file.
 
 ## What It Does
-- Analyses the contents of photos and PDFs.
+- Analyses the contents of photos and PDF files.
 - Renames files using meaningful names rather than generic ones.
-- Converts readable text within files into Markdown format.
+- Converts readable text within files into Markdown (.md) format.
+- Does not store uploaded files, reducing the risk of data leakage, unauthorised access, or server-side caching.
 
-## Intended Purposes
+## Intended Purpose
 - Reduces manual administrative work.
 - Automates repetitive tasks such as file renaming and data entry.
 - Prepares extracted text for translation or further editing.
-- Improves file organisation and makes documents easier to identify.
+- Improves file organisation, making documents easier to identify and manage.
+- Designed for anonymous use, with no requirement to create an account.
 
 ## Reflections (Why I created this app)
 Much of my work, both past and present, involves unglamorous but necessary administrative tasks, such as sorting through images and documents. In today's digital world, creating files is effortless—a single tap of a phone camera can generate dozens of photos. The real work begins afterwards: organising, renaming, and extracting useful information from them. A folder full of randomly named files is difficult to navigate and adds unnecessary administrative overhead.
